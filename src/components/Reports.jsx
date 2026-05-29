@@ -16,29 +16,41 @@ function Reports() {
     const total = report.reduce((sum, r) => sum + Number(r.StockOutTotalPrice), 0);
 
     return (
-        <div className="page">
-            <h2>Daily Stock Out Report</h2>
-            <div className="form">
-                <input type="date" value={date} onChange={e => setDate(e.target.value)} />
-                <button onClick={loadReport}>Generate Report</button>
+        <div>
+            <h2 className="text-lg font-bold mb-2">Daily Report</h2>
+            <div className="mb-4">
+                <input type="date" value={date} onChange={e => setDate(e.target.value)} className="border p-1 mr-2" />
+                <button onClick={loadReport} className="bg-blue-500 text-white px-3 py-1">Show Report</button>
             </div>
 
             {report.length > 0 && (
-                <>
-                    <table>
-                        <thead><tr><th>Name</th><th>Category</th><th>Quantity</th><th>Unit Price</th><th>Total</th><th>Date</th></tr></thead>
+                <div>
+                    <table className="border-collapse border w-full mb-3">
+                        <thead>
+                            <tr className="bg-gray-200">
+                                <th className="border p-2">Name</th>
+                                <th className="border p-2">Category</th>
+                                <th className="border p-2">Quantity</th>
+                                <th className="border p-2">Unit Price</th>
+                                <th className="border p-2">Total</th>
+                                <th className="border p-2">Date</th>
+                            </tr>
+                        </thead>
                         <tbody>
                             {report.map(r => (
                                 <tr key={r.StockOutID}>
-                                    <td>{r.Name}</td><td>{r.Category}</td><td>{r.StockOutQuantity}</td>
-                                    <td>{r.StockOutUnitPrice}</td><td>{r.StockOutTotalPrice}</td>
-                                    <td>{r.StockOutDate?.split('T')[0]}</td>
+                                    <td className="border p-2">{r.Name}</td>
+                                    <td className="border p-2">{r.Category}</td>
+                                    <td className="border p-2">{r.StockOutQuantity}</td>
+                                    <td className="border p-2">{r.StockOutUnitPrice}</td>
+                                    <td className="border p-2">{r.StockOutTotalPrice}</td>
+                                    <td className="border p-2">{r.StockOutDate?.split('T')[0]}</td>
                                 </tr>
                             ))}
                         </tbody>
                     </table>
-                    <h3>Grand Total: {total.toFixed(2)} RWF</h3>
-                </>
+                    <p className="font-bold">Total: {total.toFixed(2)} RWF</p>
+                </div>
             )}
         </div>
     );

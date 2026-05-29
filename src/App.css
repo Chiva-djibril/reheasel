@@ -59,7 +59,7 @@ body {
   margin-top: 10px;
 }
 
-/* Navbar */
+  
 .navbar {
   border-bottom: 1px solid #ccc;
   padding: 10px;
@@ -85,7 +85,7 @@ body {
   margin: 0 10px;
 }
 
-/* Pages */
+  
 .content {
   padding: 10px;
 }
@@ -94,7 +94,6 @@ body {
   margin: 15px 0 10px;
 }
 
-/* Forms */
 .form {
   margin-bottom: 15px;
 }

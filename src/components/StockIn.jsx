@@ -37,47 +37,67 @@ function StockIn() {
     };
 
     return (
-        <div className="page">
-            <h2>Spare Parts Management</h2>
-            <form onSubmit={addPart} className="form">
-                <input placeholder="Name" value={partForm.Name} onChange={e => setPartForm({ ...partForm, Name: e.target.value })} required />
-                <input placeholder="Category" value={partForm.Category} onChange={e => setPartForm({ ...partForm, Category: e.target.value })} required />
-                <input type="number" placeholder="Quantity" value={partForm.Quantity} onChange={e => setPartForm({ ...partForm, Quantity: e.target.value })} required />
-                <input type="number" step="0.01" placeholder="Unit Price" value={partForm.UnitPrice} onChange={e => setPartForm({ ...partForm, UnitPrice: e.target.value })} required />
-                <button type="submit">Add Part</button>
+        <div>
+            <h2 className="text-lg font-bold mb-2">Spare Parts</h2>
+            <form onSubmit={addPart} className="mb-4">
+                <input placeholder="Name" value={partForm.Name} onChange={e => setPartForm({ ...partForm, Name: e.target.value })} required className="border p-1 mr-2" />
+                <input placeholder="Category" value={partForm.Category} onChange={e => setPartForm({ ...partForm, Category: e.target.value })} required className="border p-1 mr-2" />
+                <input type="number" placeholder="Quantity" value={partForm.Quantity} onChange={e => setPartForm({ ...partForm, Quantity: e.target.value })} required className="border p-1 mr-2" />
+                <input type="number" placeholder="Unit Price" value={partForm.UnitPrice} onChange={e => setPartForm({ ...partForm, UnitPrice: e.target.value })} required className="border p-1 mr-2" />
+                <button type="submit" className="bg-green-500 text-white px-3 py-1">Add Part</button>
             </form>
 
-            <table>
-                <thead><tr><th>Name</th><th>Category</th><th>Quantity</th><th>Unit Price</th><th>Total</th></tr></thead>
+            <table className="border-collapse border w-full mb-5">
+                <thead>
+                    <tr className="bg-gray-200">
+                        <th className="border p-2">Name</th>
+                        <th className="border p-2">Category</th>
+                        <th className="border p-2">Quantity</th>
+                        <th className="border p-2">Unit Price</th>
+                        <th className="border p-2">Total</th>
+                    </tr>
+                </thead>
                 <tbody>
                     {parts.map(p => (
                         <tr key={p.Name}>
-                          <td>{p.Name}</td>
-                          <td>{p.Category}</td>
-                          <td>{p.Quantity}</td>
-                          <td>{p.UnitPrice}</td>
-                          <td>{p.TotalPrice}</td>
+                            <td className="border p-2">{p.Name}</td>
+                            <td className="border p-2">{p.Category}</td>
+                            <td className="border p-2">{p.Quantity}</td>
+                            <td className="border p-2">{p.UnitPrice}</td>
+                            <td className="border p-2">{p.TotalPrice}</td>
                         </tr>
                     ))}
                 </tbody>
             </table>
 
-            <h2>Stock In</h2>
-            <form onSubmit={addStockIn} className="form">
-                <select value={stockForm.Name} onChange={e => setStockForm({ ...stockForm, Name: e.target.value })} required>
+            <h2 className="text-lg font-bold mb-2">Stock In</h2>
+            <form onSubmit={addStockIn} className="mb-4">
+                <select value={stockForm.Name} onChange={e => setStockForm({ ...stockForm, Name: e.target.value })} required className="border p-1 mr-2">
                     <option value="">Select Part</option>
                     {parts.map(p => <option key={p.Name}>{p.Name}</option>)}
                 </select>
-                <input type="number" placeholder="Quantity" value={stockForm.StockInQuantity} onChange={e => setStockForm({ ...stockForm, StockInQuantity: e.target.value })} required />
-                <input type="date" value={stockForm.StockInDate} onChange={e => setStockForm({ ...stockForm, StockInDate: e.target.value })} required />
-                <button type="submit">Record Stock In</button>
+                <input type="number" placeholder="Quantity" value={stockForm.StockInQuantity} onChange={e => setStockForm({ ...stockForm, StockInQuantity: e.target.value })} required className="border p-1 mr-2" />
+                <input type="date" value={stockForm.StockInDate} onChange={e => setStockForm({ ...stockForm, StockInDate: e.target.value })} required className="border p-1 mr-2" />
+                <button type="submit" className="bg-green-500 text-white px-3 py-1">Save</button>
             </form>
 
-            <table>
-                <thead><tr><th>ID</th><th>Name</th><th>Quantity</th><th>Date</th></tr></thead>
+            <table className="border-collapse border w-full">
+                <thead>
+                    <tr className="bg-gray-200">
+                        <th className="border p-2">ID</th>
+                        <th className="border p-2">Name</th>
+                        <th className="border p-2">Quantity</th>
+                        <th className="border p-2">Date</th>
+                    </tr>
+                </thead>
                 <tbody>
                     {stockIns.map(s => (
-                        <tr key={s.StockInID}><td>{s.StockInID}</td><td>{s.Name}</td><td>{s.StockInQuantity}</td><td>{s.StockInDate?.split('T')[0]}</td></tr>
+                        <tr key={s.StockInID}>
+                            <td className="border p-2">{s.StockInID}</td>
+                            <td className="border p-2">{s.Name}</td>
+                            <td className="border p-2">{s.StockInQuantity}</td>
+                            <td className="border p-2">{s.StockInDate?.split('T')[0]}</td>
+                        </tr>
                     ))}
                 </tbody>
             </table>

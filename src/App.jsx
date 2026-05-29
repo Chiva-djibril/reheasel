@@ -3,7 +3,6 @@ import Navbar from './components/Navbar';
 import StockIn from './components/StockIn';
 import StockOut from './components/StockOut';
 import Reports from './components/Reports';
-import './App.css';
 
 function App() {
     const [token, setToken] = useState(localStorage.getItem('token'));
@@ -29,10 +28,10 @@ function App() {
                 setToken(data.token);
             } else {
                 setAuthMode('login');
-                alert('Registered! Please login.');
+                setError('Registered! Please login.');
             }
         } catch {
-            alert('Server error');
+            setError('Server error');
         }
     };
 
@@ -43,10 +42,10 @@ function App() {
 
     if (!token) {
         return (
-            <div className="auth-container">
-                <div className="auth-box">
-                    <h2 style={{color: "black"}}>SmartPark Stock&Inventory Management System</h2>
-                    <h3>{authMode === 'login' ? 'Login' : 'Register'}</h3>
+            <div className="p-10">
+                <div className="border p-5 w-80 mx-auto mt-20">
+                    <h2 className="text-xl mb-3">SmartPark SIMS</h2>
+                    <h3 className="mb-3">{authMode === 'login' ? 'Login' : 'Register'}</h3>
                     <form onSubmit={handleAuth}>
                         <input
                             type="text"
@@ -54,6 +53,7 @@ function App() {
                             value={credentials.username}
                             onChange={e => setCredentials({ ...credentials, username: e.target.value })}
                             required
+                            className="border p-2 w-full mb-2"
                         />
                         <input
                             type="password"
@@ -61,12 +61,18 @@ function App() {
                             value={credentials.password}
                             onChange={e => setCredentials({ ...credentials, password: e.target.value })}
                             required
+                            className="border p-2 w-full mb-2"
                         />
-                        <button type="submit">{authMode === 'login' ? 'Login' : 'Register'}</button>
+                        <button type="submit" className="bg-blue-500 text-white px-3 py-1">
+                            {authMode === 'login' ? 'Login' : 'Register'}
+                        </button>
                     </form>
-                    {error && <p className="error">{error}</p>}
-                    <p onClick={() => setAuthMode(authMode === 'login' ? 'register' : 'login')} className="link">
-                        {authMode === 'login' ? 'Need an account? Register' : 'Have account? Login'}
+                    {error && <p className="text-red-500 mt-2">{error}</p>}
+                    <p
+                        onClick={() => setAuthMode(authMode === 'login' ? 'register' : 'login')}
+                        className="text-blue-500 mt-3 cursor-pointer underline"
+                    >
+                        {authMode === 'login' ? 'Register here' : 'Login here'}
                     </p>
                 </div>
             </div>
@@ -74,9 +80,9 @@ function App() {
     }
 
     return (
-        <div className="app">
+        <div>
             <Navbar setPage={setPage} logout={logout} />
-            <div className="content">
+            <div className="p-5">
                 {page === 'stockin' && <StockIn />}
                 {page === 'stockout' && <StockOut />}
                 {page === 'reports' && <Reports />}
