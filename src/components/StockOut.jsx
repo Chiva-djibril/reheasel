@@ -10,34 +10,71 @@ function StockOut() {
     const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` };
 
     const loadData = async () => {
-        const p = await fetch('http://localhost:5000/api/spareparts', { headers }).then(r => r.json());
-        const s = await fetch('http://localhost:5000/api/stockout', { headers }).then(r => r.json());
-        setParts(p);
-        setStockOuts(s);
+        try {
+            const p = await fetch('http://localhost:5000/api/spareparts', { headers }).then(r => r.json());
+            const s = await fetch('http://localhost:5000/api/stockout', { headers }).then(r => r.json());
+            setParts(p);
+            setStockOuts(s);
+        } catch (err) {
+            console.error('Load error:', err);
+        }
     };
 
     useEffect(() => { loadData(); }, []);
 
     const submit = async (e) => {
-        e.preventDefault();
-        if (editId) {
-            await fetch(`http://localhost:5000/api/stockout/${editId}`, {
-                method: 'PUT', headers, body: JSON.stringify(form)
-            });
-            setEditId(null);
-        } else {
-            await fetch('http://localhost:5000/api/stockout', {
-                method: 'POST', headers, body: JSON.stringify(form)
-            });
+    e.preventDefault();
+    try {
+        const url = editId 
+            ? `http://localhost:5000/api/stockout/${editId}` 
+            : 'http://localhost:5000/api/stockout';
+        const method = editId ? 'PUT' : 'POST';
+        
+        const res = await fetch(url, {
+            method,
+            headers,
+            body: JSON.stringify(form)
+        });
+        
+        const data = await res.json();
+        
+        if (!res.ok) {
+            alert(data.message || 'Operation failed');
+            return;
         }
+        
+        alert(data.message);
+        setEditId(null);
         setForm({ Name: '', StockOutQuantity: '', StockOutUnitPrice: '', StockOutDate: '' });
         loadData();
-    };
+    } catch (err) {
+        alert('Error: ' + err.message);
+    }
+};
 
     const remove = async (id) => {
-        if (!confirm('Delete?')) return;
-        await fetch(`http://localhost:5000/api/stockout/${id}`, { method: 'DELETE', headers });
-        loadData();
+        if (!window.confirm('Are you sure you want to delete?')) return;
+
+        try {
+            const res = await fetch(`http://localhost:5000/api/stockout/${id}`, {
+                method: 'DELETE',
+                headers
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                alert('Error: ' + (data.message || 'Delete failed'));
+                console.error(data);
+                return;
+            }
+
+            alert('Deleted successfully!');
+            loadData();
+        } catch (err) {
+            console.error('Delete error:', err);
+            alert('Network error: ' + err.message);
+        }
     };
 
     const edit = (s) => {
@@ -66,7 +103,11 @@ function StockOut() {
             </form>
 
             <table>
-                <thead><tr><th>ID</th><th>Name</th><th>Qty</th><th>Unit Price</th><th>Total</th><th>Date</th><th>Actions</th></tr></thead>
+                <thead>
+                    <tr>
+                        <th>ID</th><th>Name</th><th>Qty</th><th>Unit Price</th><th>Total</th><th>Date</th><th>Actions</th>
+                    </tr>
+                </thead>
                 <tbody>
                     {stockOuts.map(s => (
                         <tr key={s.StockOutID}>
@@ -78,7 +119,7 @@ function StockOut() {
                             <td>{s.StockOutDate?.split('T')[0]}</td>
                             <td>
                                 <button onClick={() => edit(s)}>Edit</button>
-                                <button onClick={() => remove(s.StockOutID)} className="del">Delete</button>
+                                <button onClick={() => remove(s.StockOutID)}>Delete</button>
                             </td>
                         </tr>
                     ))}
@@ -87,4 +128,5 @@ function StockOut() {
         </div>
     );
 }
+
 export default StockOut;

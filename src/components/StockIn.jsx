@@ -51,7 +51,13 @@ function StockIn() {
                 <thead><tr><th>Name</th><th>Category</th><th>Quantity</th><th>Unit Price</th><th>Total</th></tr></thead>
                 <tbody>
                     {parts.map(p => (
-                        <tr key={p.Name}><td>{p.Name}</td><td>{p.Category}</td><td>{p.Quantity}</td><td>{p.UnitPrice}</td><td>{p.TotalPrice}</td></tr>
+                        <tr key={p.Name}>
+                          <td>{p.Name}</td>
+                          <td>{p.Category}</td>
+                          <td>{p.Quantity}</td>
+                          <td>{p.UnitPrice}</td>
+                          <td>{p.TotalPrice}</td>
+                        </tr>
                     ))}
                 </tbody>
             </table>

@@ -2,7 +2,7 @@ function Navbar({ setPage, logout }) {
     const username = localStorage.getItem('username');
     return (
         <nav className="navbar">
-            <h2>SmartPark SIMS</h2>
+            <h2>Stock&Inventory Management System</h2>
             <div className="nav-links">
                 <button onClick={() => setPage('stockin')}>Stock In</button>
                 <button onClick={() => setPage('stockout')}>Stock Out</button>

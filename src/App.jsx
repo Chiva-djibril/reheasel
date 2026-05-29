@@ -29,10 +29,10 @@ function App() {
                 setToken(data.token);
             } else {
                 setAuthMode('login');
-                setError('Registered! Please login.');
+                alert('Registered! Please login.');
             }
         } catch {
-            setError('Server error');
+            alert('Server error');
         }
     };
 
@@ -45,7 +45,7 @@ function App() {
         return (
             <div className="auth-container">
                 <div className="auth-box">
-                    <h2>SmartPark SIMS</h2>
+                    <h2 style={{color: "black"}}>SmartPark Stock&Inventory Management System</h2>
                     <h3>{authMode === 'login' ? 'Login' : 'Register'}</h3>
                     <form onSubmit={handleAuth}>
                         <input
@@ -57,7 +57,7 @@ function App() {
                         />
                         <input
                             type="password"
-                            placeholder="Password (min 6 chars)"
+                            placeholder="Password"
                             value={credentials.password}
                             onChange={e => setCredentials({ ...credentials, password: e.target.value })}
                             required

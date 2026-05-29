@@ -60,7 +60,7 @@ app.post('/api/login', (req, res) => {
     });
 });
 
-// Spare Parts CRUD
+// Spare Parts
 app.get('/api/spareparts', authMiddleware, (req, res) => {
     db.query('SELECT * FROM Spare_Part', (err, results) => {
         if (err) return res.status(500).json(err);
@@ -97,7 +97,7 @@ app.post('/api/stockin', authMiddleware, (req, res) => {
         });
 });
 
-// Stock Out
+// Stock Out - GET
 app.get('/api/stockout', authMiddleware, (req, res) => {
     db.query('SELECT * FROM Stock_Out', (err, results) => {
         if (err) return res.status(500).json(err);
@@ -105,32 +105,138 @@ app.get('/api/stockout', authMiddleware, (req, res) => {
     });
 });
 
+// Stock Out - POST
+// Stock Out - POST (with quantity check)
 app.post('/api/stockout', authMiddleware, (req, res) => {
     const { Name, StockOutQuantity, StockOutUnitPrice, StockOutDate } = req.body;
-    const StockOutTotalPrice = StockOutQuantity * StockOutUnitPrice;
-    db.query('INSERT INTO Stock_Out (Name, StockOutQuantity, StockOutUnitPrice, StockOutTotalPrice, StockOutDate) VALUES (?, ?, ?, ?, ?)',
-        [Name, StockOutQuantity, StockOutUnitPrice, StockOutTotalPrice, StockOutDate], (err) => {
-            if (err) return res.status(500).json(err);
-            db.query('UPDATE Spare_Part SET Quantity = Quantity - ? WHERE Name = ?',
-                [StockOutQuantity, Name]);
-            res.json({ message: 'Stock Out recorded' });
-        });
+    
+    // First check available quantity
+    db.query('SELECT Quantity FROM Spare_Part WHERE Name = ?', [Name], (err, results) => {
+        if (err) return res.status(500).json({ message: 'Database error' });
+        
+        if (results.length === 0) {
+            return res.status(404).json({ message: 'Spare part not found' });
+        }
+        
+        const availableQty = results[0].Quantity;
+        const requestedQty = parseInt(StockOutQuantity);
+        
+        if (requestedQty > availableQty) {
+            return res.status(400).json({ 
+                message: `Insufficient stock! Available: ${availableQty}, Requested: ${requestedQty}` 
+            });
+        }
+        
+        if (requestedQty <= 0) {
+            return res.status(400).json({ message: 'Quantity must be greater than 0' });
+        }
+        
+        const StockOutTotalPrice = requestedQty * StockOutUnitPrice;
+        
+        db.query(
+            'INSERT INTO Stock_Out (Name, StockOutQuantity, StockOutUnitPrice, StockOutTotalPrice, StockOutDate) VALUES (?, ?, ?, ?, ?)',
+            [Name, requestedQty, StockOutUnitPrice, StockOutTotalPrice, StockOutDate],
+            (err) => {
+                if (err) return res.status(500).json({ message: 'Insert failed', error: err.message });
+                
+                db.query(
+                    'UPDATE Spare_Part SET Quantity = Quantity - ?, TotalPrice = (Quantity - ?) * UnitPrice WHERE Name = ?',
+                    [requestedQty, requestedQty, Name],
+                    (err) => {
+                        if (err) console.error('Update error:', err);
+                        res.json({ message: 'Stock Out recorded successfully' });
+                    }
+                );
+            }
+        );
+    });
 });
 
+// Stock Out - PUT (Update with check)
 app.put('/api/stockout/:id', authMiddleware, (req, res) => {
     const { StockOutQuantity, StockOutUnitPrice, StockOutDate } = req.body;
-    const total = StockOutQuantity * StockOutUnitPrice;
-    db.query('UPDATE Stock_Out SET StockOutQuantity=?, StockOutUnitPrice=?, StockOutTotalPrice=?, StockOutDate=? WHERE StockOutID=?',
-        [StockOutQuantity, StockOutUnitPrice, total, StockOutDate, req.params.id], (err) => {
-            if (err) return res.status(500).json(err);
-            res.json({ message: 'Updated' });
+    const id = req.params.id;
+    
+    // Get original record
+    db.query('SELECT * FROM Stock_Out WHERE StockOutID = ?', [id], (err, oldResults) => {
+        if (err || oldResults.length === 0) {
+            return res.status(404).json({ message: 'Record not found' });
+        }
+        
+        const oldRecord = oldResults[0];
+        const oldQty = oldRecord.StockOutQuantity;
+        const newQty = parseInt(StockOutQuantity);
+        const diff = newQty - oldQty;
+        
+        // Check available stock
+        db.query('SELECT Quantity FROM Spare_Part WHERE Name = ?', [oldRecord.Name], (err, partResults) => {
+            if (err) return res.status(500).json({ message: 'Database error' });
+            
+            const available = partResults[0].Quantity;
+            
+            if (diff > available) {
+                return res.status(400).json({ 
+                    message: `Insufficient stock! Available: ${available}, Additional needed: ${diff}` 
+                });
+            }
+            
+            if (newQty <= 0) {
+                return res.status(400).json({ message: 'Quantity must be greater than 0' });
+            }
+            
+            const total = newQty * StockOutUnitPrice;
+            
+            db.query(
+                'UPDATE Stock_Out SET StockOutQuantity=?, StockOutUnitPrice=?, StockOutTotalPrice=?, StockOutDate=? WHERE StockOutID=?',
+                [newQty, StockOutUnitPrice, total, StockOutDate, id],
+                (err) => {
+                    if (err) return res.status(500).json({ message: 'Update failed' });
+                    
+                    // Adjust Spare_Part quantity
+                    db.query(
+                        'UPDATE Spare_Part SET Quantity = Quantity - ?, TotalPrice = (Quantity - ?) * UnitPrice WHERE Name = ?',
+                        [diff, diff, oldRecord.Name],
+                        () => res.json({ message: 'Updated successfully' })
+                    );
+                }
+            );
         });
+    });
 });
 
+// Stock Out - DELETE (FIXED)
 app.delete('/api/stockout/:id', authMiddleware, (req, res) => {
-    db.query('DELETE FROM Stock_Out WHERE StockOutID=?', [req.params.id], (err) => {
-        if (err) return res.status(500).json(err);
-        res.json({ message: 'Deleted' });
+    const id = req.params.id;
+    console.log('Delete request for ID:', id);
+
+    db.query('SELECT * FROM Stock_Out WHERE StockOutID = ?', [id], (err, results) => {
+        if (err) {
+            console.error('Select error:', err);
+            return res.status(500).json({ message: 'Database error', error: err.message });
+        }
+
+        if (results.length === 0) {
+            return res.status(404).json({ message: 'Record not found' });
+        }
+
+        const record = results[0];
+
+        db.query('DELETE FROM Stock_Out WHERE StockOutID = ?', [id], (err, result) => {
+            if (err) {
+                console.error('Delete error:', err);
+                return res.status(500).json({ message: 'Delete failed', error: err.message });
+            }
+
+            db.query(
+                'UPDATE Spare_Part SET Quantity = Quantity + ? WHERE Name = ?',
+                [record.StockOutQuantity, record.Name],
+                (err) => {
+                    if (err) console.error('Update error:', err);
+                    console.log('Deleted successfully:', id);
+                    res.json({ message: 'Deleted successfully' });
+                }
+            );
+        });
     });
 });
 
